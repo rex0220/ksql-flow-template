@@ -60,6 +60,8 @@ kSQL Flow 同梱の[アプリテンプレート](https://github.com/rex0220/ksql
 
 `ksql.config.json` と `ksql.mcp.config.json` の `baseUrl` とアプリ `id` を自環境に合わせます。トークン値はこの 2 ファイルには書きません（`env:` 参照のまま）。
 
+> 案件管理の `tokens` に顧客管理のトークンも並べてあるのは意図的です。SFA パックの案件管理の `会社名` は**ルックアップ**（参照元 = 顧客管理）で、kintone はルックアップ付きレコードの書込時に**参照先アプリの閲覧権限を同じリクエストのトークンで検証**するため、参照先トークンの併送が必要です（欠けていると `does not exist in the datasource app for lookup, or you do not have permission...` エラーになります — 実機で確認済み）。
+
 ### 5. トークンを置く
 
 `.env.example` をコピーして `.env` を作り、**閲覧のみトークン**を貼ります。

@@ -6,7 +6,7 @@
       "timezone": "Asia/Tokyo",
       "auth": { "type": "apiToken" },
       "apps": {
-        "案件管理": { "id": 100, "tokens": ["env:KSQL_TOKEN_DEALS"] },
+        "案件管理": { "id": 100, "tokens": ["env:KSQL_TOKEN_DEALS", "env:KSQL_TOKEN_CUSTOMERS"] },
         "顧客管理": { "id": 200, "tokens": ["env:KSQL_TOKEN_CUSTOMERS"] },
         "実行ログ": { "id": 999, "tokens": ["env:KSQL_TOKEN_LOGS"] }
       },
