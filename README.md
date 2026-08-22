@@ -119,7 +119,8 @@ npm run job -- -f dev/cleanup_test_deals.sql --profile prod          # 4. テス
 
 - テストデータは会社名・案件名が `KSQL-FLOW-TEST-` プレフィックスで、cleanup が**会社名の完全一致**で案件・顧客の両方を削除します
 - seed は再実行しても増殖しません（投入済みなら正常スキップ）
-- 期待値: dry-run で `INSERT 2 件`、本実行後の顧客管理に「KSQL-FLOW-TEST-山田商事: 2 件 / 150,000」「KSQL-FLOW-TEST-鈴木建設: 1 件 / 380,000」
+- seed は**テスト顧客 2 社を先に顧客管理へ UPSERT**します — SFA パックの案件管理の `会社名` はルックアップ（参照元 = 顧客管理）のため、参照先に無い会社名は案件に書けません（実機で確認済み）
+- 期待値: dry-run で `UPDATE 2 件`（seed が作った 2 社の集計欄が埋まる差分）、本実行後の顧客管理に「KSQL-FLOW-TEST-山田商事: 2 件 / 150,000」「KSQL-FLOW-TEST-鈴木建設: 1 件 / 380,000」
 
 ## 関連リンク
 
