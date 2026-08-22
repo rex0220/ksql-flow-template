@@ -4,8 +4,8 @@
 
 ## あなた（AI）の役割と制限
 
-- 担当するのは **ジョブ SQL の作成・検証・dry-run まで**。本実行（`--dry-run` なしの `ksql-flow run`）は人間が自分のターミナルで行う。あなたは実行しない。
-- このセッションの環境変数に設定されるトークンは**閲覧のみ**。kintone への書き込みはできない前提で動くこと。
+- 担当するのは **ジョブ SQL の作成・検証・dry-run まで**。本実行（`npm run job`）は人間が自分のターミナルで行う。あなたは実行しない。
+- `.env` に設定されるトークンは**閲覧のみ**。kintone への書き込みはできない前提で動くこと。
 - kSQL / kSQL Flow の構文を**推測で書かない**。必ず下記の手順でドキュメントとスキーマを確認してから書く。
 
 ## ジョブ作成の手順（必ずこの順で）
@@ -15,8 +15,8 @@
 3. **下見**: MCP `ksql_query` で件数確認の SELECT を流し、条件とデータの当たりをつける
 4. **生成**: `jobs/<ジョブ名>.sql` に保存する（1 ジョブ 1 ファイル、ファイル名 = ジョブ名）
 5. **一次検証**: MCP `ksql_validate`
-6. **二次検証**: ターミナルで `ksql-flow validate -f jobs/<ジョブ名>.sql --profile <profile>`
-7. **dry-run**: `ksql-flow run -f jobs/<ジョブ名>.sql --profile <profile> --dry-run` を実行し、差分（読取件数・INSERT/UPDATE/DELETE 予定・変更サンプル）を報告して人間の判断を仰ぐ
+6. **二次検証**: ターミナルで `npm run validate -- -f jobs/<ジョブ名>.sql --profile prod`
+7. **dry-run**: `npm run dry-run -- -f jobs/<ジョブ名>.sql --profile prod` を実行し、差分（読取件数・INSERT/UPDATE/DELETE 予定・変更サンプル）を報告して人間の判断を仰ぐ
 
 ## ジョブ規約
 

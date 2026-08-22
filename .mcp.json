@@ -1,8 +1,11 @@
 {
   "mcpServers": {
     "ksql": {
-      "command": "ksql-mcp",
-      "args": [],
+      "command": "node",
+      "args": [
+        "--env-file=.env",
+        "node_modules/@rex0220/kintone-sql-tools/dist-mcp/ksql-mcp.js"
+      ],
       "env": {
         "KSQL_CONFIG": "./ksql.mcp.config.json"
       }

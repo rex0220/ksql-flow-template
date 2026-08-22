@@ -1,0 +1,19 @@
+{
+  "name": "ksql-flow-template",
+  "version": "1.0.0",
+  "private": true,
+  "description": "kintone バッチランナー kSQL Flow のジョブを AI(Claude Code + kSQL MCP)で作成・運用するテンプレート",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "check-logapp": "node --env-file=.env node_modules/@rex0220/ksql-flow/dist/cli.js validate --check-logapp",
+    "validate": "node --env-file=.env node_modules/@rex0220/ksql-flow/dist/cli.js validate",
+    "dry-run": "node --env-file=.env node_modules/@rex0220/ksql-flow/dist/cli.js run --dry-run",
+    "job": "node --env-file=.env node_modules/@rex0220/ksql-flow/dist/cli.js run"
+  },
+  "dependencies": {
+    "@rex0220/ksql-flow": "^0.1.0",
+    "@rex0220/kintone-sql-tools": "^3.71.0"
+  }
+}
