@@ -137,7 +137,10 @@ npm run job -- -f dev/cleanup_test_deals.sql --profile prod          # 4. テス
 
 - ランナー: https://github.com/rex0220/ksql-flow （[公開仕様書](https://github.com/rex0220/ksql-flow/blob/main/docs/ksql_flow_spec.md)）
 - エンジン + MCP: https://github.com/rex0220/kintone-sql-tools
-- 解説記事: [AIエージェントにkintoneを操作させるにはSQLが最適解である](https://qiita.com/rex0220/items/fbed33b11251cdf7e31e)
+- 解説記事:
+  - [【kSQL Flow #1】kintone のバッチ処理を SQL 1 本で書けるランナーの紹介](https://qiita.com/rex0220/items/893ab4016a5aaf595642)
+  - [【kSQL Flow #2】AI エージェントに kintone のバッチジョブを書かせる — MCP + Claude Code](https://qiita.com/rex0220/items/3a1213a596a8c49b67aa)（このテンプレートの使い方を実録で解説）
+  - [AIエージェントにkintoneを操作させるにはSQLが最適解である](https://qiita.com/rex0220/items/fbed33b11251cdf7e31e)
 
 ## ライセンス
 
