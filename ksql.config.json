@@ -1,0 +1,16 @@
+{
+  "defaultProfile": "prod",
+  "profiles": {
+    "prod": {
+      "baseUrl": "https://example.cybozu.com",
+      "timezone": "Asia/Tokyo",
+      "auth": { "type": "apiToken" },
+      "apps": {
+        "案件管理": { "id": 100, "tokens": ["env:KSQL_TOKEN_DEALS"] },
+        "顧客管理": { "id": 200, "tokens": ["env:KSQL_TOKEN_CUSTOMERS"] },
+        "実行ログ": { "id": 999, "tokens": ["env:KSQL_TOKEN_LOGS"] }
+      },
+      "logApp": "実行ログ"
+    }
+  }
+}

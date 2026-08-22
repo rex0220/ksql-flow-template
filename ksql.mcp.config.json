@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "defaultProfile": "prod",
+  "profiles": {
+    "prod": {
+      "baseUrl": "https://example.cybozu.com",
+      "auth": "token",
+      "tokenMap": {
+        "APP100": "env:KSQL_TOKEN_DEALS_RO",
+        "APP200": "env:KSQL_TOKEN_CUSTOMERS_RO"
+      },
+      "logicalApps": { "案件管理": 100, "顧客管理": 200 }
+    }
+  }
+}
