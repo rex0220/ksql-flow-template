@@ -38,6 +38,10 @@
 | 4 | 部分成功（run-all） |
 | 5 | 多重起動（何もせず終了） |
 
+## dev/ ディレクトリ
+
+`dev/` は開発用ジョブ（テストデータの seed / cleanup）。書き込みを伴うため**実行は人間**が行う。あなたは内容の説明・修正まで。ジョブ本体は `jobs/` にのみ置くこと（`dev/` は定期実行の対象にしない）。
+
 ## 参照
 
 - ランナー仕様書: https://github.com/rex0220/ksql-flow/blob/main/docs/ksql_flow_spec.md

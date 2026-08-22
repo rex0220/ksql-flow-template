@@ -15,8 +15,11 @@ kintone バッチランナー [kSQL Flow](https://github.com/rex0220/ksql-flow) 
 ├── ksql.config.json          # kSQL Flow（ランナー）用の接続設定 — トークンは env: 参照
 ├── ksql.mcp.config.json      # kSQL MCP 用の接続設定 — 閲覧のみトークン
 ├── .env.example              # トークンの置き場所の雛形（.env は .gitignore 済み）
-└── jobs/
-    └── monthly_deal_summary.sql  # 検証済みサンプルジョブ（月次案件集計）
+├── jobs/
+│   └── monthly_deal_summary.sql  # 検証済みサンプルジョブ（月次案件集計）
+└── dev/                      # 開発用（run-all の対象外）
+    ├── seed_test_deals.sql       # 当月テストデータ投入（書込経路の検証用）
+    └── cleanup_test_deals.sql    # テストデータの完全削除
 ```
 
 サンプルジョブは kintone 標準の「営業支援（SFA）パック」（案件管理・顧客管理）を前提にしています。アプリ構成の準備は [kSQL Flow の README](https://github.com/rex0220/ksql-flow#readme) と紹介記事を参照してください。
@@ -102,6 +105,21 @@ npm scripts 一覧:
 | `npm run validate -- -f jobs/<name>.sql --profile prod` | ジョブのフル検証 |
 | `npm run dry-run -- -f jobs/<name>.sql --profile prod` | 差分プレビュー（書込ゼロ） |
 | `npm run job -- -f jobs/<name>.sql --profile prod` | 本実行（人間のみ・書込可トークン必須） |
+
+## 書込経路まで検証する（当月データが無いとき）
+
+月次ジョブは当月データが 0 件だと NO_DATA で正常スキップするため、そのままでは書込経路の動作確認ができません。`dev/` の開発用ジョブでテストデータを投入して検証できます（書き込みを伴うため、すべて書込可トークン側のターミナルで人間が実行）:
+
+```bash
+npm run job -- -f dev/seed_test_deals.sql --profile prod             # 1. テスト案件 3 件を当月日付で投入
+npm run dry-run -- -f jobs/monthly_deal_summary.sql --profile prod   # 2. INSERT 2 件の差分を確認
+npm run job -- -f jobs/monthly_deal_summary.sql --profile prod       # 3. 本実行（テスト顧客 2 社が集計される）
+npm run job -- -f dev/cleanup_test_deals.sql --profile prod          # 4. テストデータを完全削除
+```
+
+- テストデータは会社名・案件名が `KSQL-FLOW-TEST-` プレフィックスで、cleanup が**会社名の完全一致**で案件・顧客の両方を削除します
+- seed は再実行しても増殖しません（投入済みなら正常スキップ）
+- 期待値: dry-run で `INSERT 2 件`、本実行後の顧客管理に「KSQL-FLOW-TEST-山田商事: 2 件 / 150,000」「KSQL-FLOW-TEST-鈴木建設: 1 件 / 380,000」
 
 ## 関連リンク
 
