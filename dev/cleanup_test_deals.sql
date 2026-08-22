@@ -8,17 +8,16 @@
 -- 述語が必要なため、LIKE でなく IN を使う）。
 
 -- 想定外の大量削除を防ぐガード（seed が作るのは案件 3 件・顧客 2 件）
--- 注意: 境界は 1 桁にすること。エンジン v3.71.0 の ASSERT 大小比較は数値でも
--- 辞書順で比較される既知問題があり（起票済み）、2 桁境界（<= 10 等）は誤動作する。
+-- 前提: kintone-sql-tools v3.72.0 以降（ASSERT 大小比較の数値評価修正済み）
 ASSERT (
   SELECT COUNT(*) FROM LAPP_案件管理
   WHERE 会社名 IN ('KSQL-FLOW-TEST-山田商事', 'KSQL-FLOW-TEST-鈴木建設')
-) <= 5, '【異常中断】KSQL-FLOW-TEST- の案件が想定より多いため削除を停止しました';
+) <= 10, '【異常中断】KSQL-FLOW-TEST- の案件が想定より多いため削除を停止しました';
 
 ASSERT (
   SELECT COUNT(*) FROM LAPP_顧客管理
   WHERE 会社名 IN ('KSQL-FLOW-TEST-山田商事', 'KSQL-FLOW-TEST-鈴木建設')
-) <= 5, '【異常中断】KSQL-FLOW-TEST- の顧客が想定より多いため削除を停止しました';
+) <= 10, '【異常中断】KSQL-FLOW-TEST- の顧客が想定より多いため削除を停止しました';
 
 DELETE FROM LAPP_案件管理
 WHERE 会社名 IN ('KSQL-FLOW-TEST-山田商事', 'KSQL-FLOW-TEST-鈴木建設');

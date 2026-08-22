@@ -29,7 +29,7 @@ kintone バッチランナー [kSQL Flow](https://github.com/rex0220/ksql-flow) 
 | 項目 | 要件 |
 | --- | --- |
 | ランナー | kSQL Flow 0.1 系（`npm install` で入ります・MIT） |
-| SQL エンジン / MCP | kintone-sql-tools 3.71 系（同上） |
+| SQL エンジン / MCP | kintone-sql-tools 3.72 系（同上） |
 | Node.js | 20.6 以上 |
 | エディター | VSCode + Claude Code |
 | kintone アプリ | 営業支援（SFA）パック + 顧客管理への追加 3 フィールド + 実行ログアプリ（API トークン認証） |
