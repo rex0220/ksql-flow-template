@@ -21,32 +21,66 @@ kintone バッチランナー [kSQL Flow](https://github.com/rex0220/ksql-flow) 
 
 サンプルジョブは kintone 標準の「営業支援（SFA）パック」（案件管理・顧客管理）を前提にしています。アプリ構成の準備は [kSQL Flow の README](https://github.com/rex0220/ksql-flow#readme) と紹介記事を参照してください。
 
-## セットアップ
+## 前提条件
 
-1. **このテンプレートから自分のリポジトリを作成** — GitHub の「Use this template」→ clone。設定にはアプリ ID や業務用語が入るので、**リポジトリは Private を推奨**します。[GitHub CLI](https://cli.github.com/) なら 1 行です:
+| 項目 | 要件 |
+| --- | --- |
+| ランナー | kSQL Flow 0.1 系（`npm install` で入ります・MIT） |
+| SQL エンジン / MCP | kintone-sql-tools 3.71 系（同上） |
+| Node.js | 20.6 以上 |
+| エディター | VSCode + Claude Code |
+| kintone アプリ | 営業支援（SFA）パック + 顧客管理への追加 3 フィールド + 実行ログアプリ（API トークン認証） |
 
-   ```bash
-   gh repo create my-ksql-jobs --template rex0220/ksql-flow-template --private --clone
-   ```
+## 環境構築（初回 15 分）
 
-2. **依存を入れる**（Node.js 20.6 以上）
+### 1. テンプレートから自分のリポジトリを作る
 
-   ```bash
-   npm install
-   ```
+テンプレートページ右上の「Use this template → Create a new repository」で、自分のアカウントに **Private** で作成して clone します（設定にアプリ ID や業務用語が入るため。**visibility は Public が初期値なので必ず Private に切り替えてください**）。[GitHub CLI](https://cli.github.com/) なら 1 行です:
 
-   ランナー（kSQL Flow）とエンジン + MCP サーバー（kintone-sql-tools）が入ります。これだけです。
-3. **実行ログアプリの作成** — kSQL Flow 同梱の[アプリテンプレート](https://github.com/rex0220/ksql-flow/tree/main/template)から作成（約 3 分）
-4. **接続設定の書き換え** — `ksql.config.json` と `ksql.mcp.config.json` の `baseUrl` とアプリ `id` を自環境に合わせる（トークン値はファイルに書かない）
-5. **トークンを置く** — `.env.example` をコピーして `.env` を作り、**閲覧のみトークン**を貼る
+```bash
+gh repo create my-ksql-jobs --template rex0220/ksql-flow-template --private --clone
+```
 
-   | 変数 | 権限 | 用途 |
-   | --- | --- | --- |
-   | `KSQL_TOKEN_DEALS_RO` / `KSQL_TOKEN_CUSTOMERS_RO` | 閲覧のみ | AI の MCP（スキーマ確認・下見クエリ） |
-   | `KSQL_TOKEN_DEALS` / `KSQL_TOKEN_CUSTOMERS` / `KSQL_TOKEN_LOGS` | 閲覧のみの値を入れる | `npm run validate` / `npm run dry-run` |
+### 2. 依存を入れる
 
-   **本実行する人間だけ**が、書込可（閲覧 + 編集 + 追加）のトークンを **OS の環境変数**（`setx` 等）に設定します。OS 環境変数は `.env` より優先されるため、`.env` は閲覧のみのまま共有でき、AI のセッションからは書き込めません。
-6. **VSCode で開いて Claude Code を起動** — 初回に kSQL MCP サーバーの使用可否を聞かれるので許可します（登録内容は `.mcp.json`）
+```bash
+npm install
+```
+
+ランナー（kSQL Flow）とエンジン + MCP サーバー（kintone-sql-tools）が入ります。これだけです。
+
+### 3. 実行ログアプリを作る
+
+kSQL Flow 同梱の[アプリテンプレート](https://github.com/rex0220/ksql-flow/tree/main/template)から作成します（約 3 分。フィールド定義・レイアウト・一覧設定済み）。
+
+### 4. 接続設定を書き換える
+
+`ksql.config.json` と `ksql.mcp.config.json` の `baseUrl` とアプリ `id` を自環境に合わせます。トークン値はこの 2 ファイルには書きません（`env:` 参照のまま）。
+
+### 5. トークンを置く
+
+`.env.example` をコピーして `.env` を作り、**閲覧のみトークン**を貼ります。
+
+| 変数 | 権限 | 用途 |
+| --- | --- | --- |
+| `KSQL_TOKEN_DEALS_RO` / `KSQL_TOKEN_CUSTOMERS_RO` | 閲覧のみ | AI の MCP（スキーマ確認・下見クエリ） |
+| `KSQL_TOKEN_DEALS` / `KSQL_TOKEN_CUSTOMERS` / `KSQL_TOKEN_LOGS` | 閲覧のみの値を入れる | `npm run validate` / `npm run dry-run` |
+
+**本実行する人間だけ**が、書込可（閲覧 + 編集 + 追加）のトークンを **OS の環境変数**に設定します（Windows なら `setx`。設定後は **VSCode のウィンドウをすべて閉じて起動し直してください** — Reload Window では反映されません）。OS 環境変数は `.env` より優先されるため、`.env` は閲覧のみのまま共有でき、AI のセッションからは書き込めません。
+
+### 6. VSCode で開いて Claude Code を起動
+
+初回に kSQL MCP サーバーの使用可否を聞かれるので許可します（登録内容は `.mcp.json`）。
+
+### 7. 疎通確認
+
+Claude Code に「**`ksql_describe_app` で `LAPP_案件管理` のフィールド一覧を見せて**」と指示し、フィールドコードと型の一覧が返ってくれば準備完了です。あわせてターミナル側も:
+
+```bash
+npm run check-logapp -- --profile prod
+```
+
+`OK: ログアプリ (ID ...) は 8.2 のフィールド定義を満たしています` が出れば、ランナー側の疎通とログアプリの定義検査も完了です。
 
 ## 使い方
 
