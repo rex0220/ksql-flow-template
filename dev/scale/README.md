@@ -44,6 +44,9 @@ kSQL Flow のスケール検証（200 / 2,000 / 20,000 件）用のツール一�
 ## 1. SMOKE（1 社 × 10 件・初回のみ・IMPORT の疎通）
 
 ```powershell
+# 前提チェック（残存 0 件の確認。ABORTED なら他世代のテストデータが残っている — 先に片付ける）
+npm run job -- -f dev/scale/out/SMOKE/precheck.sql --profile prod
+
 # シード（エンジン CLI の IMPORT。--dry-run を外すと本実行）
 node node_modules/@rex0220/kintone-sql-tools/dist-cli/ksql.js `
   --config dev/scale/ksql.cli.config.json --profile prod `
@@ -70,6 +73,7 @@ config 互換）は完了。
 
 ### 段階別の注意
 
+- **seed の前に必ず `precheck.sql`**（残存 0 件チェック）。検証期間中、`KSQL-FLOW-TEST-` 名前空間は本検証が専有する（他のテスト作業と重ねない）
 - **verify は集計ジョブの後に**流す（顧客側の集計欄を突合するため）
 - **案件の再シードは必ず cleanup 後**（案件 IMPORT は INSERT。顧客は ON DUPLICATE で冪等）
 - **L のみ**:

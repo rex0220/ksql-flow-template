@@ -9,6 +9,7 @@
 //   deals.csv            案件管理へ IMPORT する案件（会社 i × 案件 j、売上 = i*1000+j）
 //   touch.sql            書込大ジョブ: テスト案件全件の UPDATE（会社名 IN をバッチ分割）
 //   cleanup_1.sql ...    テストデータ完全削除（案件 → 顧客の順・IN バッチ分割・複数ファイル）
+//   precheck.sql         seed 前の残存 0 件チェック（他世代テストデータの混入防止）
 //   verify.sql           突合ジョブ: 検算リテラル ASSERT + 会社別不一致/欠落/余剰の検出
 //   manifest.json        期待値・件数・分割数などの記録（scale-notes 転記用）
 //
@@ -101,6 +102,28 @@ for (let i = 1; i <= N; i += IN_BATCH) {
     files.push(write(`cleanup_${f + 1}.sql`, head.join("\n") + "\n" + part.join("\n\n") + "\n"));
   }
   var cleanupFiles = files; // manifest 用
+}
+
+// ---- precheck.sql（seed 前の残存 0 件チェック — 名前空間が空であることを保証） ----
+{
+  const sql = `-- @ksql name: scale_precheck
+-- @ksql timeout: 600
+-- @ksql dialect: 1
+
+-- seed の前に必ず実行する。KSQL-FLOW-TEST- 名前空間に他世代のテストデータが残っていると
+-- 突合が誤検出（または誤通過）するため、残存があればここで停止する（実機 SMOKE で実際に発生）。
+ASSERT (
+  SELECT COUNT(*) FROM LAPP_案件管理
+  WHERE 会社名 LIKE 'KSQL-FLOW-TEST-%' OR 案件名 LIKE 'KSQL-FLOW-TEST-%'
+) = 0, '【前提NG】案件管理に KSQL-FLOW-TEST- の残存データがあります。先に片付けてください';
+
+ASSERT (
+  SELECT COUNT(*) FROM LAPP_顧客管理 WHERE 会社名 LIKE 'KSQL-FLOW-TEST-%'
+) = 0, '【前提NG】顧客管理に KSQL-FLOW-TEST- の残存データがあります。先に片付けてください';
+
+SELECT 'namespace clean' AS 前提確認;
+`;
+  write("precheck.sql", sql);
 }
 
 // ---- verify.sql（突合: 検算リテラル + 再集計比較。read-only + ASSERT のみ） ----
