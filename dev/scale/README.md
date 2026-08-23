@@ -12,8 +12,10 @@ kSQL Flow のスケール検証（200 / 2,000 / 20,000 件）用のツール一�
 
 | ファイル | 役割 |
 | --- | --- |
-| `generate.mjs` | 段階別の CSV・touch・cleanup・verify・manifest を `out/<tier>/` に生成 |
+| `generate.mjs` | 段階別の CSV・precheck・touch・cleanup・verify・manifest を `out/<tier>/` に生成 |
 | `seed_import.sql` | エンジン CLI（`ksql`）の IMPORT で顧客 → 案件を投入 |
+| `seed_run.mjs` | シードの実行ラッパー — 併送トークン合成 + **tier 別の CLI 上限/タイムアウトを自動付与**（下記の注意参照） |
+| `job_run.mjs` | ランナー実行の計測ラッパー — 経過秒 + ピーク RSS を出力（Windows/PowerShell 前提。ランナー出力には無い） |
 | `ksql.cli.config.json` | エンジン CLI 用の接続設定（`baseUrl` とアプリ `id` を自環境に書き換える） |
 | `scale_deal_summary.sql` | 検証専用の集計ジョブ（全文テストスコープ限定・実データ不可侵） |
 | `out/<tier>/verify.sql` | 突合ジョブ（期待値リテラル + 再集計比較。**集計ジョブ実行後に**流す） |
@@ -74,6 +76,8 @@ config 互換）は完了。
 ### 段階別の注意
 
 - **seed の前に必ず `precheck.sql`**（残存 0 件チェック）。検証期間中、`KSQL-FLOW-TEST-` 名前空間は本検証が専有する（他のテスト作業と重ねない）
+- **シードは `seed_run.mjs` 経由を推奨**: `node --env-file=.env dev/scale/seed_run.mjs --tier <tier>`。CLI 既定の `--dml-max-rows 100` は SMOKE 以外で不足（S の実機で発見）、`--timeout 30s` は M/L の IMPORT で不足するため、tier 別の上限・タイムアウトをラッパーが自動付与する
+- **IMPORT の timeout 罠（M の実機で発見）**: クライアントが TimeoutError で失敗 exit しても、**サーバ側では書込が完了していることがある**。案件 INSERT は再実行不可なので、seed 失敗時は必ず件数を実測 → cleanup → 再 seed の順で復旧する
 - **verify は集計ジョブの後に**流す（顧客側の集計欄を突合するため）
 - **案件の再シードは必ず cleanup 後**（案件 IMPORT は INSERT。顧客は ON DUPLICATE で冪等）
 - **L のみ**:
