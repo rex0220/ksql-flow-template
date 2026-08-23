@@ -126,7 +126,7 @@ npm scripts 一覧:
 
 ## 定期実行に載せる（サーバー構築・約 15 分）
 
-このリポジトリには起動バッチ `run_batch.bat`（配置先に依存しない `%~dp0` 基準・ASCII のみ）を同梱しており、clone するだけで定期実行に必要な一式が揃います。デプロイ = clone、更新 = pull。
+このリポジトリには起動バッチ `run_batch.bat`（配置先に依存しない `%~dp0` 基準・ASCII のみ）を同梱しており、clone するだけで定期実行に必要な一式が揃います。初回配置 = clone + npm install、以降のジョブ更新 = 基本 pull。
 
 1. サーバーに Node.js 20.6+ を導入
 2. ジョブリポジトリを clone（private のため認証が必要。[GitHub CLI](https://cli.github.com/) なら `gh auth login` 後に）:
