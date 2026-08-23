@@ -20,7 +20,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const TIERS = { SMOKE: 1, S: 20, M: 200, L: 2000 }; // 会社数（案件は各 10 件）
+const TIERS = { SMOKE: 1, S: 20, M: 200, L: 2000, XL: 10000 }; // 会社数（案件は各 10 件）
+// XL(100,000 件)は仕様 11 章の公表目標「読取 10 万 → 書込 1 万」と同スケール。
+// limits は maxReadRows/maxTempRows とも 120,000(サポート目安 10 万 + 余裕)・
+// ランナー batchTimeoutSec 7200 を推奨(touch が 1,000 チャンク ≈ 40 分級のため)
 const DEALS_PER_COMPANY = 10;
 const IN_BATCH = 250; // IN 句 1 文あたりの会社数
 const MAX_STATEMENTS = 18; // エンジン上限 20 文に対する安全マージン
@@ -30,7 +33,8 @@ const args = Object.fromEntries(
 );
 const tier = (args.tier ?? "S").toUpperCase();
 const asOf = args["as-of"];
-if (!TIERS[tier]) { console.error("--tier は SMOKE / S / M / L"); process.exit(1); }
+if (!TIERS[tier]) { console.error("--tier は SMOKE / S / M / L / XL"); process.exit(1); }
+const TIMEOUT_SEC = tier === "XL" ? 7200 : 3600; // 生成ジョブの @ksql timeout
 if (!/^\d{4}-\d{2}-\d{2}$/.test(asOf ?? "")) { console.error("--as-of YYYY-MM-DD が必須（検証全体の固定 as-of の暦日）"); process.exit(1); }
 
 const N = TIERS[tier];
@@ -66,21 +70,27 @@ for (let i = 1; i <= N; i += IN_BATCH) {
   batches.push(names.join(", "));
 }
 
-// ---- touch.sql（書込大ジョブ: 全テスト案件を UPDATE。冪等） ----
+// ---- touch（書込大ジョブ: 全テスト案件を UPDATE。冪等。文数上限で複数ファイル分割） ----
+let touchFiles;
 {
-  const head = [
-    "-- @ksql name: scale_touch_update_" + tier.toLowerCase(),
-    "-- @ksql timeout: 3600",
-    "-- @ksql dialect: 1",
-    "",
-    `-- 書込スケール試験: テスト案件 ${totalDeals} 件の 詳細 を UPDATE（${Math.ceil(totalDeals / 100)} チャンク）。`,
-    "-- チェックポイント・中断リラン・maxApiCalls 試験に使う。テストデータ以外に触れない。",
-    "",
-  ];
   const stmts = batches.map(b =>
     `UPDATE LAPP_案件管理 SET 詳細 = 'KSQL-FLOW-TEST-touched ${asOf}'\nWHERE 会社名 IN (${b});`);
-  if (stmts.length > MAX_STATEMENTS) throw new Error("touch.sql が文数上限を超過");
-  write("touch.sql", head.join("\n") + "\n" + stmts.join("\n\n") + "\n");
+  const parts = Math.ceil(stmts.length / MAX_STATEMENTS);
+  touchFiles = [];
+  for (let f = 0; f < parts; f++) {
+    const part = stmts.slice(f * MAX_STATEMENTS, (f + 1) * MAX_STATEMENTS);
+    const head = [
+      `-- @ksql name: scale_touch_update_${tier.toLowerCase()}${parts > 1 ? `_${f + 1}` : ""}`,
+      `-- @ksql timeout: ${TIMEOUT_SEC}`,
+      "-- @ksql dialect: 1",
+      "",
+      `-- 書込スケール試験 (${f + 1}/${parts}): テスト案件の 詳細 を UPDATE（全体 ${totalDeals} 件 = ${Math.ceil(totalDeals / 100)} チャンク）。`,
+      "-- チェックポイント・中断リラン・maxApiCalls 試験に使う。テストデータ以外に触れない。",
+      "",
+    ];
+    const name = parts > 1 ? `touch_${f + 1}.sql` : "touch.sql";
+    touchFiles.push(write(name, head.join("\n") + "\n" + part.join("\n\n") + "\n"));
+  }
 }
 
 // ---- cleanup_<n>.sql（案件 → 顧客の順。ファイルあたり MAX_STATEMENTS 文に分割） ----
@@ -175,7 +185,7 @@ SELECT COUNT(*) AS 突合対象社数 FROM agg;
 const manifest = {
   tier, asOf, companies: N, dealsPerCompany: DEALS_PER_COMPANY,
   totalDeals, totalSales,
-  inBatch: IN_BATCH, touchStatements: batches.length, cleanupFiles,
+  inBatch: IN_BATCH, touchStatements: batches.length, touchFiles, cleanupFiles,
   csv: {
     customers: { rows: N, bytes: fs.statSync(path.join(outDir, "customers.csv")).size },
     deals: { rows: totalDeals, bytes: fs.statSync(path.join(outDir, "deals.csv")).size },

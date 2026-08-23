@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 
 const tierIdx = process.argv.indexOf("--tier");
 const tier = tierIdx >= 0 ? process.argv[tierIdx + 1] : "SMOKE";
-if (!["SMOKE", "S", "M", "L"].includes(tier)) {
+if (!["SMOKE", "S", "M", "L", "XL"].includes(tier)) {
   console.error(`FATAL: unknown tier "${tier}"`);
   process.exit(89);
 }
@@ -29,14 +29,14 @@ const args = [
 // CLI defaults (maxRecords 500 / dmlMaxRows 100) only fit SMOKE (10 deals);
 // S=200 / M=2,000 / L=20,000 all exceed dmlMaxRows 100 (found live in S seed, 2026-08-23).
 // Keep the fail-closed guard meaningful with tier-scaled caps instead of one huge value.
-const LIMITS = { S: ["1000", "500"], M: ["5000", "2500"], L: ["25000", "25000"] };
+const LIMITS = { S: ["1000", "500"], M: ["5000", "2500"], L: ["25000", "25000"], XL: ["110000", "110000"] };
 if (LIMITS[tier]) {
   const [maxRecords, dmlMaxRows] = LIMITS[tier];
   args.push("--max-records", maxRecords, "--dml-max-rows", dmlMaxRows);
 }
 // CLI --timeout default 30000 ms is too short for M/L IMPORT batches
 // (M seed hit "TimeoutError: batch timeout exceeded" AFTER all rows were written, 2026-08-23).
-const TIMEOUTS = { M: "600000", L: "3600000" };
+const TIMEOUTS = { M: "600000", L: "3600000", XL: "7200000" };
 if (TIMEOUTS[tier]) {
   args.push("--timeout", TIMEOUTS[tier]);
 }

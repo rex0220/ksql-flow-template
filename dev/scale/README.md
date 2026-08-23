@@ -84,5 +84,11 @@ config 互換）は完了。
   - ランナー config の profile に上限を追加: `"limits": { "maxReadRows": 25000, "maxTempRows": 25000 }`
     （片方だけでは失敗点が移動する — エンジン F-3 回答 §3）
   - 先に**未設定のまま 1 回実行**して既定 10,000 の明示エラーを記録する（観点 L-9 ①）
-  - シードの CLI に `--max-records 25000 --dml-max-rows 25000` を追加（CLI 側の既定は 500 / 100）
+  - シードは `seed_run.mjs --tier L` が上限・タイムアウトを自動付与
   - 中断リラン・チェックポイント・maxApiCalls 試験は `out/L/touch.sql` で（企画 §4 L-11/L-12）
+- **XL（100,000 件 = 1 万社 × 10）のみ** — 仕様 11 章の公表目標「読取 10 万 → 書込 1 万・10 分以内」と同スケール:
+  - limits は `"maxReadRows": 120000, "maxTempRows": 120000, "batchTimeoutSec": 7200`
+    （touch が 1,000 チャンク ≈ 40 分級のため batchTimeoutSec の引き上げも必要）
+  - seed は約 30 分見込み（L 364 秒の 5 倍換算）。touch/cleanup は複数ファイル（touch_1〜3 / cleanup_1〜5）を順に実行
+  - **API 予算 ≈ 5,000〜5,500 回/サイクル** — 案件管理 1 アプリの日次目安 1 万回の半分を使うため、**1 日 1 サイクル厳守・他の検証と重ねない**。計測 3 回は集計ジョブのみ（touch/cleanup は各 1 回）
+  - deals.csv ≈ 6.0 MiB（IMPORT の 10 MiB 制限内。これ以上の規模は CSV 分割が必要になる設計限界も記録対象）
