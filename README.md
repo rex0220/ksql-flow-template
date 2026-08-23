@@ -56,6 +56,11 @@ npm install
 
 kSQL Flow 同梱の[アプリテンプレート](https://github.com/rex0220/ksql-flow/tree/main/template)から作成します（約 3 分。フィールド定義・レイアウト・一覧設定済み）。
 
+作成後、**失敗通知を kintone 標準の条件通知で設定**しておくと追加インフラなしで通知が届きます（設定 → 通知 → レコードの条件通知に 2 つ・宛先は自分やグループ）:
+
+1. `record_type = BATCH` かつ status が `FAILED` / `ABORTED` / `TIMEOUT` のいずれか（run-all の失敗を 1 通に集約）
+2. `record_type = JOB` かつ `parent_batch_id` が空 かつ status が同上（単発 run の失敗）
+
 ### 4. 接続設定を書き換える
 
 `ksql.config.json` と `ksql.mcp.config.json` の `baseUrl` とアプリ `id` を自環境に合わせます。トークン値はこの 2 ファイルには書きません（`env:` 参照のまま）。
