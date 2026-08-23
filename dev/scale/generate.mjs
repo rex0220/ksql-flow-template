@@ -19,7 +19,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const TIERS = { S: 20, M: 200, L: 2000 }; // 会社数（案件は各 10 件）
+const TIERS = { SMOKE: 1, S: 20, M: 200, L: 2000 }; // 会社数（案件は各 10 件）
 const DEALS_PER_COMPANY = 10;
 const IN_BATCH = 250; // IN 句 1 文あたりの会社数
 const MAX_STATEMENTS = 18; // エンジン上限 20 文に対する安全マージン
@@ -29,7 +29,7 @@ const args = Object.fromEntries(
 );
 const tier = (args.tier ?? "S").toUpperCase();
 const asOf = args["as-of"];
-if (!TIERS[tier]) { console.error("--tier は S / M / L"); process.exit(1); }
+if (!TIERS[tier]) { console.error("--tier は SMOKE / S / M / L"); process.exit(1); }
 if (!/^\d{4}-\d{2}-\d{2}$/.test(asOf ?? "")) { console.error("--as-of YYYY-MM-DD が必須（検証全体の固定 as-of の暦日）"); process.exit(1); }
 
 const N = TIERS[tier];
