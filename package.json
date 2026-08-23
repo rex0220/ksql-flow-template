@@ -13,7 +13,7 @@
     "job": "node --env-file=.env node_modules/@rex0220/ksql-flow/dist/cli.js run"
   },
   "dependencies": {
-    "@rex0220/ksql-flow": "^0.1.0",
+    "@rex0220/ksql-flow": "^0.2.0",
     "@rex0220/kintone-sql-tools": "^3.72.0"
   }
 }
