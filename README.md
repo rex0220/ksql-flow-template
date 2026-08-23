@@ -117,9 +117,36 @@ npm scripts 一覧:
 | `npm run dry-run -- -f jobs/<name>.sql --profile prod` | 差分プレビュー（書込ゼロ） |
 | `npm run job -- -f jobs/<name>.sql --profile prod` | 本実行（人間のみ・書込可トークン必須） |
 
-## 定期実行に載せる
+## 定期実行に載せる（サーバー構築・約 15 分）
 
-このリポジトリをサーバーへ `git clone` → `npm install` → `.env` 配置すれば、そのまま定期実行に載せられます（デプロイ = clone、更新 = pull）。Windows タスクスケジューラの実例（起動バッチ・登録スクリプト・実機で踏んだ罠）は [ksql-flow の examples/windows-task-scheduler](https://github.com/rex0220/ksql-flow/tree/main/examples/windows-task-scheduler) を参照してください。
+このリポジトリには起動バッチ `run_batch.bat`（配置先に依存しない `%~dp0` 基準・ASCII のみ）を同梱しており、clone するだけで定期実行に必要な一式が揃います。デプロイ = clone、更新 = pull。
+
+1. サーバーに Node.js 20.6+ を導入
+2. ジョブリポジトリを clone（private のため認証が必要。[GitHub CLI](https://cli.github.com/) なら `gh auth login` 後に）:
+
+   ```powershell
+   gh repo clone <あなたのアカウント>/my-ksql-jobs C:\ksql\my-ksql-jobs
+   cd C:\ksql\my-ksql-jobs
+   npm install
+   ```
+
+3. `.env.example` をコピーして `.env` を作り、**このサーバー用の書込可トークン**を貼る（無人サーバーには AI が同居しないため、開発機と違い書込可を `.env` に置く — トークンの露出面はこのディレクトリに閉じる）
+4. 疎通確認（ログアプリの定義検査）:
+
+   ```powershell
+   node --env-file=.env node_modules\@rex0220\ksql-flow\dist\cli.js validate --check-logapp --profile prod
+   ```
+
+5. 起動バッチを手動で 1 回実行し、Exit Code とログアプリの記録を確認:
+
+   ```powershell
+   .\run_batch.bat
+   $LASTEXITCODE   # 0 = 成功（対象 0 件の NO_DATA を含む）
+   ```
+
+6. タスク登録（毎朝 6:00・自動再起動なし）: [ksql-flow の examples/windows-task-scheduler/register_task.ps1](https://github.com/rex0220/ksql-flow/blob/main/examples/windows-task-scheduler/register_task.ps1) の `$batchPath` を clone 先に合わせて実行
+
+実機で踏んだ罠（BOM なし日本語 .ps1 の無言死・カレントディレクトリ依存パスの 0xFFFD0000）と運用設計の詳細は連載記事 #4 を参照。
 
 ## 書込経路まで検証する（当月データが無いとき）
 
