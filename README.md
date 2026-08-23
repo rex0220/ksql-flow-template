@@ -117,6 +117,10 @@ npm scripts 一覧:
 | `npm run dry-run -- -f jobs/<name>.sql --profile prod` | 差分プレビュー（書込ゼロ） |
 | `npm run job -- -f jobs/<name>.sql --profile prod` | 本実行（人間のみ・書込可トークン必須） |
 
+## 定期実行に載せる
+
+このリポジトリをサーバーへ `git clone` → `npm install` → `.env` 配置すれば、そのまま定期実行に載せられます（デプロイ = clone、更新 = pull）。Windows タスクスケジューラの実例（起動バッチ・登録スクリプト・実機で踏んだ罠）は [ksql-flow の examples/windows-task-scheduler](https://github.com/rex0220/ksql-flow/tree/main/examples/windows-task-scheduler) を参照してください。
+
 ## 書込経路まで検証する（当月データが無いとき）
 
 月次ジョブは当月データが 0 件だと NO_DATA で正常スキップするため、そのままでは書込経路の動作確認ができません。`dev/` の開発用ジョブでテストデータを投入して検証できます（書き込みを伴うため、すべて書込可トークン側のターミナルで人間が実行）:
