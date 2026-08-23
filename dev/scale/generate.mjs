@@ -93,6 +93,39 @@ let touchFiles;
   }
 }
 
+// ---- touch_single.sql（実験: 当月日付範囲だけを条件にした「1 文の UPDATE」で全テスト案件を更新） ----
+{
+  const inMonthPred = `受注予定日 >= @MONTH_START() AND 受注予定日 < @NEXT_MONTH_START()`;
+  const sql = `-- @ksql name: scale_touch_single_${tier.toLowerCase()}
+-- @ksql timeout: ${TIMEOUT_SEC}
+-- @ksql dialect: 1
+
+-- 実験: テスト案件 ${totalDeals} 件を「1 文の UPDATE」で更新し、単文でも書込が
+-- 100 件/リクエストに分割されること・所要が分割版 touch と同等であることを確認する。
+--
+-- 条件は当月の日付範囲のみ（短いクエリ）。会社名の IN 列挙は使わない —
+-- 実測で kintone 入口の nginx が URL 長 ≈8KB 超（IN ≈270 社〜）を 414/431 で拒否するため。
+-- 実データ保護は下の ASSERT 2 本が担保する（当月にテスト外の案件があれば書かずに中止）。
+-- 注意: 候補読取が ${totalDeals} 件のため limits.maxReadRows の引き上げが必要（L: 25,000）。
+
+-- 1) 当月にプレフィックス外の案件が 1 件でもあれば中止（実データ保護・fail-closed）
+ASSERT (
+  SELECT COUNT(*) FROM LAPP_案件管理
+  WHERE ${inMonthPred} AND NOT (会社名 LIKE 'KSQL-FLOW-TEST-C%')
+) = 0, '【中止】当月にテスト外の案件が存在するため、日付範囲での一括 UPDATE は実行しません';
+
+-- 2) 対象件数が期待値と一致することを確認
+ASSERT (
+  SELECT COUNT(*) FROM LAPP_案件管理 WHERE ${inMonthPred}
+) = ${totalDeals}, '【中止】当月の対象件数が期待値 ${totalDeals} と不一致です';
+
+-- 3) 単文 UPDATE（冪等）
+UPDATE LAPP_案件管理 SET 詳細 = 'KSQL-FLOW-TEST-touched-single ${asOf}'
+WHERE ${inMonthPred};
+`;
+  write("touch_single.sql", sql);
+}
+
 // ---- cleanup_<n>.sql（案件 → 顧客の順。ファイルあたり MAX_STATEMENTS 文に分割） ----
 {
   const stmts = [];
