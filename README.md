@@ -137,7 +137,7 @@ npm scripts 一覧:
 | `npm run dry-run -- -f jobs/<name>.sql --profile prod` | 差分プレビュー（書込ゼロ） |
 | `npm run job -- -f jobs/<name>.sql --profile prod` | 本実行（人間のみ・書込可トークン必須） |
 
-## 定期実行に載せる（サーバー構築・約 15 分）
+## 定期実行に載せる（サーバー構築）
 
 このリポジトリには起動バッチ `run_batch.bat`（配置先に依存しない `%~dp0` 基準・ASCII のみ）を同梱しており、clone するだけで定期実行に必要な一式が揃います。初回配置 = clone + npm install、以降のジョブ更新 = 基本 pull。
 
