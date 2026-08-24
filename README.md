@@ -151,7 +151,7 @@ npm scripts 一覧:
    $LASTEXITCODE   # 0 = 成功（対象 0 件の NO_DATA を含む）
    ```
 
-6. タスク登録（毎朝 6:00・自動再起動なし）: [ksql-flow の examples/windows-task-scheduler/register_task.ps1](https://github.com/rex0220/ksql-flow/blob/main/examples/windows-task-scheduler/register_task.ps1) の `$batchPath` を clone 先に合わせて実行
+6. タスク登録（毎朝 6:00・自動再起動なし）: [ksql-flow の examples/windows-task-scheduler/register_task.ps1](https://github.com/rex0220/ksql-flow/blob/main/examples/windows-task-scheduler/register_task.ps1) の `$batchPath` を clone 先に合わせて実行。初回はトリガーを数分後の時刻（`-At (Get-Date).AddMinutes(5)`）にして**スケジュール発火そのもの**を確認し、`Set-ScheduledTask` で本番時刻へ変更するのがおすすめ（手順はスクリプト内の TIP コメント参照）
 
 実機で踏んだ罠（BOM なし日本語 .ps1 の無言死・カレントディレクトリ依存パスの 0xFFFD0000）と運用設計の詳細は連載記事 #4 を参照。
 
