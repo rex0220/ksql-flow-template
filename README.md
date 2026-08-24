@@ -19,7 +19,9 @@ kintone バッチランナー [kSQL Flow](https://github.com/rex0220/ksql-flow) 
 │   └── monthly_deal_summary.sql  # 検証済みサンプルジョブ（月次案件集計）
 └── dev/                      # 開発用（run-all の対象外）
     ├── seed_test_deals.sql       # 当月テストデータ投入（書込経路の検証用）
-    └── cleanup_test_deals.sql    # テストデータの完全削除
+    ├── cleanup_test_deals.sql    # テストデータの完全削除
+    └── notify_test/
+        └── notify_test_fail.sql  # 失敗通知の動作確認（意図的な ASSERT 失敗・書込ゼロ）
 ```
 
 サンプルジョブは kintone 標準の「営業支援（SFA）パック」（案件管理・顧客管理）を前提にしています。アプリ構成の準備は [kSQL Flow の README](https://github.com/rex0220/ksql-flow#readme) と紹介記事を参照してください。
@@ -64,6 +66,15 @@ kSQL Flow 同梱の[アプリテンプレート](https://github.com/rex0220/ksql
 宛先は個人ではなく「**ジョブ管理**」グループを作ってグループ宛にするのがおすすめです。担当の入れ替えは cybozu.com 共通管理のグループメンバー変更だけで済み、アプリの通知設定は触りません（グループ宛でも通知はメンバー個々に届きます）。
 
 通知メッセージは固定文のみのため「深刻度 + 初動」だけを書きます（例: 条件 1 `【要対応】kSQL Flow バッチ失敗 — error 欄を確認し、対処後に --resume で再実行` / 条件 2 `【要対応】kSQL Flow ジョブ失敗 — error 欄を確認`）。テンプレートから作ったアプリは**レコードのタイトル = `スクリプト名` が設定済み**なので、通知一覧にジョブ名が並びます（BATCH のタイトルは実行対象ディレクトリ表記。既存アプリは「その他の設定 → レコードのタイトル」で変更）。
+
+設定後の動作確認には同梱の通知テストジョブが使えます（意図的に ASSERT を失敗させるだけで、業務アプリへの書込はゼロ）:
+
+```bash
+npm run job -- -f dev/notify_test/notify_test_fail.sql --profile prod                              # 条件 2（単発ジョブ失敗）の通知
+node --env-file=.env node_modules/@rex0220/ksql-flow/dist/cli.js run-all ./dev/notify_test --profile prod   # 条件 1（バッチ失敗）の通知
+```
+
+ポータルと通知メールに 2 通（それぞれの固定文 + タイトル）が届けば設定完了です（実機確認済み。メールは件名に「タイトル - 固定文」が入るため件名だけで初動が判断できます）。
 
 ### 4. 接続設定を書き換える
 
