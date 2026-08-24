@@ -1,0 +1,39 @@
+# kSQL Flow: 毎朝の定期実行（GitHub Actions 版）
+#
+# 有効化: リポジトリの Settings → Secrets and variables → Actions で
+#   - Variables: KSQL_ACTIONS_ENABLED = true（未設定ならこのジョブはスキップされ、失敗通知も出ない）
+#   - Secrets:   KSQL_TOKEN_DEALS / KSQL_TOKEN_CUSTOMERS / KSQL_TOKEN_LOGS（書込可トークン）
+#
+# 設計メモ（連載 #4 と同じ原則）:
+#   - cron の分を 0 以外にずらすのは、毎時 0 分が混雑して遅延しやすいため
+#   - schedule はベストエフォート（遅延・稀にドロップ）。ジョブは as-of 基準の集計なので開始遅延に強い
+#   - 自動リトライは付けない。失敗の復旧は workflow_dispatch の resume 実行（冪等リラン）に一本化
+#   - まれな二重発火は、ログアプリの分散ロックが Exit 5 で吸収する
+name: daily-batch
+on:
+  schedule:
+    - cron: '7 21 * * *'   # 21:07 UTC = 翌朝 6:07 JST（0 分を避ける）
+  workflow_dispatch:
+    inputs:
+      resume:
+        description: "前回失敗分のみ再実行（--resume・元の as-of を引き継ぐ）"
+        type: boolean
+        default: false
+jobs:
+  run:
+    if: ${{ vars.KSQL_ACTIONS_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: run-all
+        run: npx --no-install ksql-flow run-all ./jobs --profile prod ${{ inputs.resume == true && '--resume' || '' }}
+        env:
+          KSQL_TOKEN_DEALS: ${{ secrets.KSQL_TOKEN_DEALS }}
+          KSQL_TOKEN_CUSTOMERS: ${{ secrets.KSQL_TOKEN_CUSTOMERS }}
+          KSQL_TOKEN_LOGS: ${{ secrets.KSQL_TOKEN_LOGS }}

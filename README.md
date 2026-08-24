@@ -168,6 +168,22 @@ npm scripts 一覧:
 
 実機で踏んだ罠（BOM なし日本語 .ps1 の無言死・カレントディレクトリ依存パスの 0xFFFD0000）と運用設計の詳細は連載記事 #4 を参照。
 
+## GitHub Actions で動かす（サーバー不要）
+
+`.github/workflows/` に 2 本同梱しています（**既定では無効** — 新規リポジトリで Secrets 未設定のまま失敗通知が飛ばないように、リポジトリ変数でオプトインする方式です）:
+
+| workflow | 内容 |
+| --- | --- |
+| `daily-batch.yml` | 毎朝 6:07 JST（21:07 UTC）に `run-all`。手動実行（workflow_dispatch）と `--resume` リランにも対応 |
+| `pr-check.yml` | PR ごとに `validate-all` + dry-run の**差分プレビューを自動コメント**。**閲覧のみトークンだけ**で動く（レビュー前の SQL に書込トークンを渡さない） |
+
+有効化は Settings → Secrets and variables → Actions で:
+
+1. **Variables**: `KSQL_ACTIONS_ENABLED` = `true`
+2. **Secrets**: 書込可 `KSQL_TOKEN_DEALS` / `KSQL_TOKEN_CUSTOMERS` / `KSQL_TOKEN_LOGS`（daily-batch 用）と、閲覧のみ `KSQL_TOKEN_DEALS_RO` / `KSQL_TOKEN_CUSTOMERS_RO` / `KSQL_TOKEN_LOGS_RO`（pr-check 用）
+
+注意: GitHub Actions の schedule はベストエフォートです（毎時 0 分は混雑で遅延しやすいため 7 分にずらしてあります。まれな二重発火はログアプリの分散ロックが Exit 5 で吸収）。ジョブは as-of 基準の集計なので、開始が遅延しても結果は変わりません。
+
 ## 書込経路まで検証する（当月データが無いとき）
 
 月次ジョブは当月データが 0 件だと NO_DATA で正常スキップするため、そのままでは書込経路の動作確認ができません。`dev/` の開発用ジョブでテストデータを投入して検証できます（書き込みを伴うため、すべて書込可トークン側のターミナルで人間が実行）:

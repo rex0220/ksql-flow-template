@@ -1,0 +1,74 @@
+# kSQL Flow: PR ごとの二段検証 + dry-run 差分プレビューの自動コメント
+#
+# 有効化: リポジトリの Settings → Secrets and variables → Actions で
+#   - Variables: KSQL_ACTIONS_ENABLED = true
+#   - Secrets:   KSQL_TOKEN_DEALS_RO / KSQL_TOKEN_CUSTOMERS_RO / KSQL_TOKEN_LOGS_RO（閲覧のみトークン）
+#
+# セキュリティ設計: この workflow に渡すのは**閲覧のみトークン**だけ（同じ環境変数名に RO 値を注入）。
+# PR 上のジョブ SQL はレビュー前のコードなので、書込トークンには触れさせない。
+# dry-run は書込ゼロの差分プレビューで、読取 API のみ消費する。
+name: pr-check
+on:
+  pull_request:
+    paths:
+      - 'jobs/**'
+      - 'ksql.config.json'
+      - 'package*.json'
+      - '.github/workflows/**'
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  check:
+    if: ${{ vars.KSQL_ACTIONS_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      KSQL_TOKEN_DEALS: ${{ secrets.KSQL_TOKEN_DEALS_RO }}
+      KSQL_TOKEN_CUSTOMERS: ${{ secrets.KSQL_TOKEN_CUSTOMERS_RO }}
+      KSQL_TOKEN_LOGS: ${{ secrets.KSQL_TOKEN_LOGS_RO }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: validate-all
+        run: npx --no-install ksql-flow validate-all ./jobs --profile prod
+      - name: dry-run
+        run: npx --no-install ksql-flow run-all ./jobs --profile prod --dry-run --json > dryrun.json
+      - name: comment dry-run preview
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body;
+            try {
+              const data = JSON.parse(fs.readFileSync('dryrun.json', 'utf8'));
+              const rows = data.jobs.map(j => {
+                const w = (j.writes ?? []).map(x =>
+                  `${x.app}: +${x.counts.insert} / ~${x.counts.update} / -${x.counts.delete}`
+                ).join('<br>') || '—';
+                return `| ${j.job} | ${j.status} | ${j.reads.records.toLocaleString('ja-JP')} | ${w} | ${j.actualApiCalls.total} |`;
+              }).join('\n');
+              body = [
+                '## kSQL Flow dry-run 差分プレビュー（書込ゼロ）',
+                `> ${data.warning}`,
+                '',
+                '| ジョブ | 結果 | 読取件数 | 書込差分 (+INSERT / ~UPDATE / -DELETE) | API 消費 |',
+                '| --- | --- | --- | --- | --- |',
+                rows,
+                '',
+                `Exit Code: ${data.exitCode}${data.exitCode === 0 ? '' : '（0 以外 — マージ前に要確認）'}`,
+              ].join('\n');
+            } catch (e) {
+              body = '## kSQL Flow dry-run 差分プレビュー\n\n出力を取得できませんでした（前段の validate 失敗など）。Checks のログを確認してください。';
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
