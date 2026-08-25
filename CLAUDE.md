@@ -26,6 +26,7 @@
 - 書き込みは**キー指定 `UPSERT`** を既定にする（何度リランしても同じ結果 = 冪等）。キーは重複禁止フィールド
 - アプリ参照は `LAPP_<論理名>`（`ksql.config.json` の `apps` / `ksql.mcp.config.json` の `logicalApps` と同じ名前）
 - 集計の中間結果は `CREATE TEMP TABLE`（インメモリ・書込 API を消費しない）
+- **書込文（INSERT / UPDATE / UPSERT / DELETE）はジョブの最後に置く**。特に `KLIKE`（kintone の like 素通し）を書込文より後の WHERE / ASSERT に置かない — kintone の全文検索索引は書込に対し即時でなく（実測で数秒のラグ）、取りこぼし・旧値ヒットが起きる。`=` / `IN` / `$id` の条件は影響なし
 
 ## Exit Code（スケジューラ・CI が分岐に使う）
 
