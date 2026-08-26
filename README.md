@@ -180,7 +180,7 @@ npm scripts 一覧:
 有効化は Settings → Secrets and variables → Actions で:
 
 1. **Variables**: `KSQL_ACTIONS_ENABLED` = `true`
-2. **Secrets**: 書込可 `KSQL_TOKEN_DEALS` / `KSQL_TOKEN_CUSTOMERS` / `KSQL_TOKEN_LOGS`（daily-batch 用）と、閲覧のみ `KSQL_TOKEN_DEALS_RO` / `KSQL_TOKEN_CUSTOMERS_RO` / `KSQL_TOKEN_LOGS_RO`（pr-check 用）
+2. **Secrets**: 書込可 `KSQL_TOKEN_DEALS` / `KSQL_TOKEN_CUSTOMERS` / `KSQL_TOKEN_LOGS`（daily-batch 用）と、閲覧のみ `KSQL_TOKEN_DEALS_RO` / `KSQL_TOKEN_CUSTOMERS_RO` / `KSQL_TOKEN_LOGS_RO`（pr-check 用）。**`KSQL_TOKEN_LOGS_RO` はここで初めて必要になるトークン**です — ログアプリで「レコード閲覧」のみのトークンを追加発行してください（環境構築手順では発行していません）
 
 注意: GitHub Actions の schedule はベストエフォートです（毎時 0 分は混雑で遅延しやすいため 7 分にずらしてあります。まれな二重発火はログアプリの分散ロックが Exit 5 で吸収）。ジョブは as-of 基準の集計なので、開始が遅延しても結果は変わりません。
 
