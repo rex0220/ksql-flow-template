@@ -14,6 +14,6 @@
   },
   "dependencies": {
     "@rex0220/kintone-sql-tools": "^3.72.0",
-    "@rex0220/ksql-flow": "^0.4.0"
+    "@rex0220/ksql-flow": "^0.4.1"
   }
 }
