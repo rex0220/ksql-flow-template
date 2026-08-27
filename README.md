@@ -139,7 +139,9 @@ npm scripts 一覧:
 
 ## 定期実行に載せる（サーバー構築）
 
-このリポジトリには起動バッチ `run_batch.bat`（配置先に依存しない `%~dp0` 基準・ASCII のみ）を同梱しており、clone するだけで定期実行に必要な一式が揃います。初回配置 = clone + npm install、以降のジョブ更新 = 基本 pull。
+このリポジトリには起動スクリプトを同梱しており（Windows: `run_batch.bat`（`%~dp0` 基準・ASCII のみ）/ Linux・macOS: `run_batch.sh`（`cd "$(dirname "/usr/bin/bash")"` 基準））、clone するだけで定期実行に必要な一式が揃います。初回配置 = clone + npm install、以降のジョブ更新 = 基本 pull。
+
+Linux（VPS など）で cron に登録する場合は `chmod +x run_batch.sh` のうえ、`7 6 * * * /path/to/my-ksql-jobs/run_batch.sh >> /var/log/ksql/batch.log 2>&1` のように書きます（詳細は連載記事 #9）。
 
 1. サーバーに Node.js 20.6+ を導入
 2. ジョブリポジトリを clone（private のため認証が必要。[GitHub CLI](https://cli.github.com/) なら `gh auth login` 後に）:
