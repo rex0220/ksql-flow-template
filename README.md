@@ -212,6 +212,7 @@ npm run job -- -f dev/cleanup_test_deals.sql --profile prod          # 4. テス
   - [【kSQL Flow #5】kintone バッチの API 消費を 4 割減らすまで — 「束ねれば速い」が実測で覆った話](https://qiita.com/rex0220/items/9cbc1e0e9b5ab292e6a1)（bulkRequest A/B と native upsert の実測記）
   - [【kSQL Flow #6】GitHub Actions で kintone バッチをサーバーレス運用 — PR を開くと「書込差分」が自動で貼られる](https://qiita.com/rex0220/items/a522f7880a5960f033b3)（同梱 .github/workflows の実録・有効化手順）
   - [【kSQL Flow #7】kintone バッチが失敗した朝にやること — Exit Code・部分適用・再実行しても壊れない設計](https://qiita.com/rex0220/items/39821af2a79b88de0ed2)（障害ドリル 8 シナリオの実機検証つき）
+  - [【kSQL Flow #8】バッチの失敗は 4 種類ある — 自動リラン・AI 診断・人間の判断の切り分け](https://qiita.com/rex0220/items/30cac8d8b52ec8ac782a)（失敗の分類と「診る AI・押す人間・拾う機械」の役割設計）
   - [AIエージェントにkintoneを操作させるにはSQLが最適解である](https://qiita.com/rex0220/items/fbed33b11251cdf7e31e)
 
 ## ライセンス
