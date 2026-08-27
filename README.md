@@ -170,6 +170,15 @@ Linux（VPS など）で cron に登録する場合は `chmod +x run_batch.sh` �
 
 実機で踏んだ罠（BOM なし日本語 .ps1 の無言死・カレントディレクトリ依存パスの 0xFFFD0000）と運用設計の詳細は連載記事 #4 を参照。
 
+## kintone からリランを起動する（リラン指示ポーラー・任意）
+
+VPS などの無人サーバーで運用する場合、失敗通知はスマホに届いても、復旧（`--resume`）には SSH 鍵を持った端末が必要でした。同梱の**リラン指示ポーラー**を使うと、**kintone の実行ログアプリで失敗レコードの「リラン要求」チェックボックスに印を付けるだけ**で、5 分以内にサーバー側が `run_batch.sh --resume` を実行し、結果を同じレコードへ書き戻します。ポートは 1 つも開けません（outbound HTTPS のポーリングのみ）。
+
+- 同梱物: `scripts/poll_control.sh`（flock ランチャー）/ `scripts/poll_control.mjs`（本体・Node 22 標準 API のみ）/ `poll-control.config.example.json` / `test/poll_control.test.mjs`
+- 前提: ログアプリに `rerun_` フィールド 10 個（[ksql-flow v0.4.1 同梱のアプリテンプレート](https://github.com/rex0220/ksql-flow/tree/main/template)に収録済み。既存アプリは手動追加）
+- 導入手順・cron 登録・フィールドのアクセス権とリマインダー通知の設定は **[docs/poll_control_setup.md](docs/poll_control_setup.md)** を参照
+- 検証状況: 2026-08-27 に VPS 実機でドリル 14 本（全 Exit 経路・競合・stale・誤操作・停止検知）を通過していますが、**運用実績はまだ浅い**扱いです。導入時は `--check`（フィールド契約検査）と手動 1 回実行から始めてください
+
 ## GitHub Actions で動かす（サーバー不要）
 
 `.github/workflows/` に 2 本同梱しています（**既定では無効** — 新規リポジトリで Secrets 未設定のまま失敗通知が飛ばないように、リポジトリ変数でオプトインする方式です）:

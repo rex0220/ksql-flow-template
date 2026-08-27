@@ -1,0 +1,23 @@
+{
+  "baseUrl": "https://example.cybozu.com",
+  "guestSpaceId": null,
+  "logAppId": 123,
+  "tokenEnv": "KSQL_TOKEN_LOGS",
+  "profile": "prod",
+  "host": "vps-batch-01",
+  "command": "/opt/ksql/my-ksql-jobs/run_batch.sh",
+  "args": ["--resume"],
+  "cwd": "/opt/ksql/my-ksql-jobs",
+  "requestTtlSec": 21600,
+  "pollGapSec": 300,
+  "batchTimeoutSec": 3600,
+  "claimGraceSec": 600,
+  "maxCheckedRequests": 3,
+  "overflowCancellationLimit": 3,
+  "staleRecoveryLimit": 3,
+  "candidateLimit": 20,
+  "httpTimeoutMs": 30000,
+  "responseMaxBytes": 1048576,
+  "httpRetryLimit": 2,
+  "httpRetryMaxElapsedMs": 5000
+}
