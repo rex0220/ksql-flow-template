@@ -228,6 +228,7 @@ npm run job -- -f dev/cleanup_test_deals.sql --profile prod          # 4. テス
   - [【kSQL Flow #10】スマホのチェック 1 つで VPS のバッチをリランする — 新しいポートを 1 つも開けずに](https://qiita.com/rex0220/items/b841921afe86083f14a0)（同梱ポーラー scripts/poll_control の設計と実測の実録）
   - [【kSQL Flow #11】kintone がロックサーバーになる — 重複禁止フィールドで作る分散ロックと、検索索引ラグの実測](https://qiita.com/rex0220/items/44cf9f6d23c264d14dca)（ログアプリ = ロックサーバーの内部解説・保証範囲と復旧手順）
   - [【kSQL Flow #12】kintone バッチを Cloud Run Jobs へ — 使い捨てコンテナでも resume と分散ロックは動くか](https://qiita.com/rex0220/items/3c3d49419f91e582d1ab)（サーバーレス移設の実機検証・examples/cloud-run-jobs の実録）
+  - [【kSQL Flow #13】リラン指示のサーバーレス化で、既存の設計欠陥が見つかった — レビューに 2 度止められて v0.6 が生まれるまで](https://qiita.com/rex0220/items/258ad33ba1e542317602)（チェックボックスリランのサーバーレス化と v0.6 の設計記録）
   - [AIエージェントにkintoneを操作させるにはSQLが最適解である](https://qiita.com/rex0220/items/fbed33b11251cdf7e31e)
 
 ## ライセンス
