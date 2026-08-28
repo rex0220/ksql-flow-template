@@ -226,6 +226,7 @@ npm run job -- -f dev/cleanup_test_deals.sql --profile prod          # 4. テス
   - [【kSQL Flow #8】バッチの失敗は 4 種類ある — 自動リラン・AI 診断・人間の判断の切り分け](https://qiita.com/rex0220/items/30cac8d8b52ec8ac782a)（失敗の分類と「診る AI・押す人間・拾う機械」の役割設計）
   - [【kSQL Flow #9】月 1,000 円の VPS で kintone バッチを毎朝動かす — cron の遅延は 1 秒だった](https://qiita.com/rex0220/items/dd8ec668b8966e346d48)（run_batch.sh と cron 登録の実録・Ubuntu 24.04 での実機検証）
   - [【kSQL Flow #10】スマホのチェック 1 つで VPS のバッチをリランする — 新しいポートを 1 つも開けずに](https://qiita.com/rex0220/items/b841921afe86083f14a0)（同梱ポーラー scripts/poll_control の設計と実測の実録）
+  - [【kSQL Flow #11】kintone がロックサーバーになる — 重複禁止フィールドで作る分散ロックと、検索索引ラグの実測](https://qiita.com/rex0220/items/44cf9f6d23c264d14dca)（ログアプリ = ロックサーバーの内部解説・保証範囲と復旧手順）
   - [AIエージェントにkintoneを操作させるにはSQLが最適解である](https://qiita.com/rex0220/items/fbed33b11251cdf7e31e)
 
 ## ライセンス
